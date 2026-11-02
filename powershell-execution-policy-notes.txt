@@ -1,0 +1,59 @@
+Command to set the policy when security blocked in powershell:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process 
+
+Other values aprart from "Process":
+CurrentUser
+LocalMachine
+UserPolicy
+MachinePolicy
+
+• Process
+	• What it does: Applies only to the current PowerShell window/session.
+	• Details: Once you close the PowerShell window, this policy is forgotten. It takes precedence over all other scopes while that session is active.
+
+• LocalMachine
+	• What it does: Applies to all users on the computer.
+	• Details: This value is saved in the Windows Registry (HKLM) and requires you to run PowerShell as an Administrator to change it.
+
+• CurrentUser
+	• What it does: Applies only to the logged-in user.
+	• Details: This value is saved in the Windows Registry (HKCU) and does not require administrator rights to change.
+
+• UserPolicy
+	• What it does: Enforced by Group Policy for the current user.
+	• Details: This is a read-only scope for individual users; it is controlled by network administrators and cannot be changed using Set-ExecutionPolicy.
+
+• MachinePolicy
+	• What it does: Enforced by Group Policy for all users on the computer.
+	• Details: This is a read-only scope controlled by network administrators and overrides all other scopes.
+
+
+command To set to default:
+Set-ExecutionPolicy -ExecutionPolicy Undefined -Scope Process
+
+Other values apart from "Undefined":
+Restricted
+AllSigned
+RemoteSigned
+Unrestricted
+Bypass
+
+• Restricted
+	• What it does: Blocks all scripts from running.
+	• Details: This is the default policy for Windows client computers (like Windows 10/11). You can only run individual commands, not .ps1 script files.
+
+• AllSigned
+	• What it does: Runs scripts only if they are signed by a trusted publisher.
+	• Details: Every script must have a digital signature. It will prompt you before running scripts from publishers you haven't explicitly trusted yet.
+
+• RemoteSigned
+	• What it does: Requires a digital signature for scripts downloaded from the internet, but lets local scripts run without one.
+	• Details: This is the default policy for Windows Server computers. It checks for the "Zone.Identifier" stream on downloaded files.
+
+• Unrestricted
+	• What it does: Runs all scripts, but warns you before running unsigned scripts downloaded from the internet.
+	• Details: It provides no security barriers for local scripts, making it convenient for developers but less secure.
+
+• Bypass
+	• What it does: Runs everything without any warnings or prompts.
+	• Details: Nothing is blocked, and no warnings are generated. This is typically used by automated deployments or configurations where PowerShell is running as part of a larger, trusted background script.
