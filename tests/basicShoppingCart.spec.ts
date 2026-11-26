@@ -5,7 +5,15 @@ test.only(
         const URL = 'https://rahulshettyacademy.com/client';
         const locators = {
             loginPage: {
-                regLink: 'a.text-reset'
+                regLink: 'a.text-reset',
+                email: {
+                    input: 'input[type="email"]'
+                },
+                password: {
+                    input: 'input[type="password"]'
+                },
+                loginBtn: 'input[type="submit"]',
+                passResetLink: 'a.forgot-password-link[href*="auth/password-new"]'
             },
             regPage: {
                 regHeading: 'h1.login-title',
@@ -43,13 +51,61 @@ test.only(
                     input: 'input#confirmPassword'
                 },
                 ageInputCheckBox: 'input[type="checkbox"]',
-                registerBtn: 'input#login'
+                registerBtn: 'input#login',
+                loginHereLink: 'a.text-reset'
+            },
+            productsPage: {
+                item: {
+                    section: 'div.card',
+                    image: 'card-img-top',
+                    body: {
+                        section: 'card-body',
+                        name: 'b',
+                        price: 'div.text-muted',
+                        buttons: 'button'
+                    },
+                },
+                cartButton: 'button[routerlink="/dashboard/cart"]'
+            },
+            cartPage: {
+                cartItems: {
+                    section: 'div.cart',
+                    item: {
+                        cart: {
+                        section: 'div.cartSection:not(.prodTotal,.removeWrap)',
+                        heading: 'h3',
+                        price: 'p:not(.stockStatus,.itemNumber)',
+                        stockStatus: 'p.stockStatus:not(.itemNumber)',
+                        itemNum: 'p.itemNumber:not(.stockStatus)'
+                        },
+                        total: {
+                            section: 'div.prodTotal:not(.removeWrap)',
+                            price: 'p'
+                        },
+                        btn: {
+                            section: 'div.removeWrap',
+                            buyNowBtn: 'button.btn-primary',
+                            deleteBtn: 'button.btn-danger'
+                        }
+                    }
+                }
             }
         }
         const expected = {
             loginPage: {
                 regLinkTxt: 'Register here',
-                urlEnd: '/#/auth/login'
+                urlEnd: '/#/auth/login',
+                heading: 'Log in',
+                password: {
+                    lbl: 'Password',
+                    placeholder: 'enter your passsword'
+                },
+                email: {
+                    lbl: 'Email',
+                    placeholder: 'email@example.com'
+                },
+                loginBtn: 'Login',
+                passResetLink: 'Forgot password?'
             },
             regPage: {
                 regHeading: 'Register',
@@ -78,7 +134,20 @@ test.only(
                 },
                 registerBtn: 'Register',
                 ageErrMsg: '*Please check above checkbox',
-                ageCheckBox: ' I am 18 year or Older '
+                ageCheckBox: ' I am 18 year or Older ',
+                loginHereLink: 'Login here'
+            },
+            productPage: {
+                cartText: 'Cart',
+                item: {
+                    name: 'ZARA COAT 3',
+                    price: '$ 11500',
+                    stock: ' In Stock'
+                }
+            },
+            cartPage: {
+                heading: 'My Cart',
+                buyNowBtnTxt: 'Buy Now'
             }
         };
         const inputs = {
@@ -135,9 +204,9 @@ test.only(
         await page.locator(locators.regPage.confirmPass.input).fill(inputs.regpage.form.password);
         await page.locator(locators.regPage.occupation.dropdown).selectOption(inputs.regpage.form.occupation);
         for (const radioBtn of await page.locator(locators.regPage.gender.radioBtns).all()) {
-            const radioBtntxt= await radioBtn.inputValue();
+            const radioBtntxt = await radioBtn.inputValue();
             console.log(`radioBtnText: ${await radioBtn.inputValue()}`);
-            if(radioBtntxt?.trim().toLowerCase() === inputs.regpage.form.gender) {
+            if (radioBtntxt?.trim().toLowerCase() === inputs.regpage.form.gender) {
                 await radioBtn.check();
                 await page.waitForTimeout(5000);
                 await expect(radioBtn).toBeChecked();
@@ -162,22 +231,76 @@ test.only(
          * outer <div> wrapping <div class="col-md-6"> I am 18 year or Older </div> also matches.
          */
         // await expect(page.locator(`div:has-text('${expected.regPage.ageCheckBox}')`)).toHaveText(expected.regPage.ageCheckBox);
-        
+
         // Option A - match by text and no element tag provided
-        await expect(page.getByText(expected.regPage.ageCheckBox, {exact: true})).toHaveText(expected.regPage.ageCheckBox);
+        await expect(page.getByText(expected.regPage.ageCheckBox, { exact: true })).toHaveText(expected.regPage.ageCheckBox);
 
         // Option B - Target the specific colmn div
-        await expect(page.locator('div.col-md-6', {hasText: expected.regPage.ageCheckBox})).toHaveText(expected.regPage.ageCheckBox);
+        await expect(page.locator('div.col-md-6', { hasText: expected.regPage.ageCheckBox })).toHaveText(expected.regPage.ageCheckBox);
 
         // Option C - Filter to the innermost matching div
-        await expect(page.locator('div', {hasText: expected.regPage.ageCheckBox}).filter({hasNot: page.locator('div')})).toHaveText(expected.regPage.ageCheckBox);
+        await expect(page.locator('div', { hasText: expected.regPage.ageCheckBox }).filter({ hasNot: page.locator('div') })).toHaveText(expected.regPage.ageCheckBox);
 
         // this div element is just for label, there is an input[type="checkbox"] element to handle the check
-        await page.locator('div', {hasText: expected.regPage.ageCheckBox}).filter({hasNot: page.locator('div')}) .click();
+        await page.locator('div', { hasText: expected.regPage.ageCheckBox }).filter({ hasNot: page.locator('div') }).click();
         await page.locator(locators.regPage.ageInputCheckBox).check();
         await expect(page.locator(locators.regPage.ageInputCheckBox)).toBeChecked();
         console.log(`Is Age checkbox checked: ${await page.locator(locators.regPage.ageInputCheckBox).isChecked()}`);
         await expect(page.locator(locators.regPage.registerBtn)).toHaveText(expected.regPage.registerBtn);
         await page.locator(locators.regPage.registerBtn).click();
+        await expect(page.locator(locators.regPage.loginHereLink)).toHaveText(expected.regPage.loginHereLink);
+        await page.locator(locators.regPage.loginHereLink).click();
+
+        // Login page
+        await expect(page.locator(`h1:has-text('${expected.loginPage.heading}')`)).toHaveText(expected.loginPage.heading);
+        await expect(page.locator(`label:has-text('${expected.loginPage.email.lbl}')`)).toHaveText(expected.loginPage.email.lbl);
+        expect(await page.locator(locators.loginPage.email.input).getAttribute('placeholder')).toEqual(expected.loginPage.email.placeholder);
+        await expect(page.locator(`label:has-text('${expected.loginPage.password.lbl}')`)).toHaveText(expected.loginPage.password.lbl);
+        expect(await page.locator(locators.loginPage.password.input).getAttribute('placeholder')).toEqual(expected.loginPage.password.placeholder);
+        await expect(page.locator(locators.loginPage.loginBtn)).toHaveText(expected.loginPage.loginBtn);
+        await expect(page.locator(locators.loginPage.passResetLink)).toHaveText(expected.loginPage.passResetLink);
+        await page.locator(locators.loginPage.email.input).fill(inputs.regpage.form.email);
+        await page.locator(locators.loginPage.password.input).fill(inputs.regpage.form.password);
+        await page.locator(locators.loginPage.loginBtn).click();
+
+        // item add to cart
+        await expect(page.locator('section#sidebar p')).toContainText('Home');
+        await page.locator(locators.productsPage.item.section).first().waitFor();
+        const itemCount = await page.locator(locators.productsPage.item.section).count();
+        console.log(`count: ${itemCount}`);
+        for (let i = 0; i < itemCount; i++) {
+            const item = page.locator(locators.productsPage.item.section).nth(i);
+            const itemName = await item.locator(locators.productsPage.item.body.name).textContent();
+            if(itemName === expected.productPage.item.name) {
+                await expect(item.locator(locators.productsPage.item.body.price)).toHaveText(expected.productPage.item.price);
+                const btns = await item.locator(locators.productsPage.item.body.buttons).all();
+                for (const btn of btns) {
+                    await expect(btn).toHaveText(/View|Add To Cart/);
+                }
+                await item.locator(locators.productsPage.item.body.buttons).last().click();
+            }
+        }
+        await expect(page.locator(locators.productsPage.cartButton)).toContainText(expected.productPage.cartText);
+        await page.locator(locators.productsPage.cartButton).click();
+
+        // My cart page
+        let itemNum;
+        await expect(page).toHaveURL(`${URL}/#/dashboard/cart`);
+        expect(page.locator(`h1:has-Text('${expected.cartPage.heading}')`)).toHaveText(expected.cartPage.heading);
+        await page.locator(locators.cartPage.cartItems.section).locator(locators.cartPage.cartItems.item.cart.section).first().waitFor();
+        const items = await page.locator(locators.cartPage.cartItems.section).locator(locators.cartPage.cartItems.item.cart.section).all();
+        for (const item of items) {
+            await expect(item.locator(locators.cartPage.cartItems.item.cart.heading)).toHaveText(expected.productPage.item.name);
+            await expect(item.locator(locators.cartPage.cartItems.item.cart.price)).toHaveText(`MRP ${expected.productPage.item.price}`);
+            await expect(item.locator(locators.cartPage.cartItems.item.cart.stockStatus)).toHaveText(expected.productPage.item.stock);
+            expect(item.locator(locators.cartPage.cartItems.item.cart.itemNum)).not.toBeEmpty();
+            itemNum = await item.locator(locators.cartPage.cartItems.item.cart.itemNum).textContent();
+            const totalSection = page.locator(locators.cartPage.cartItems.section).locator(locators.cartPage.cartItems.item.total.section);
+            await expect(totalSection.locator(locators.cartPage.cartItems.item.total.price)).toHaveText(expected.productPage.item.price);
+            const btnSection = page.locator(locators.cartPage.cartItems.item.btn.section);
+            await expect(btnSection.locator(locators.cartPage.cartItems.item.btn.buyNowBtn)).toHaveText(expected.cartPage.buyNowBtnTxt);
+            await expect(btnSection.locator(locators.cartPage.cartItems.item.btn.deleteBtn)).toBeVisible();
+            await btnSection.locator(locators.cartPage.cartItems.item.btn.buyNowBtn).click();
+        }
     }
 );
